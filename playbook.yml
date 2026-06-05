@@ -1,0 +1,55 @@
+---
+- name: Konfiguracja serwera Apache i MariaDB
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Aktualizacja bazy pakietow apt
+      apt:
+        update_cache: yes
+
+    - name: Instalacja pakietow
+      apt:
+        name:
+          - apache2
+          - mariadb-server
+          - python3-mysqldb
+        state: present
+
+    - name: Uruchomienie Apache
+      service:
+        name: apache2
+        state: started
+        enabled: yes
+
+    - name: Uruchomienie MariaDB
+      service:
+        name: mariadb
+        state: started
+        enabled: yes
+
+    - name: Utworzenie strony glownej
+      copy:
+        dest: /var/www/html/index.html
+        owner: www-data
+        group: www-data
+        mode: '0644'
+        content: |
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <title>Lab Azure Stack</title>
+          </head>
+          <body>
+              <h1>Serwer wdrozony przez Terraform i Ansible</h1>
+              <p>Imie i nazwisko: Grzegorz Brukiewicz</p>
+              <p>Uslugi: Apache + MariaDB</p>
+              <p>Baza danych: sklep_internetowy</p>
+          </body>
+          </html>
+
+    - name: Utworzenie bazy danych sklep_internetowy
+      mysql_db:
+        name: sklep_internetowy
+        state: present
+        login_unix_socket: /run/mysqld/mysqld.sock
